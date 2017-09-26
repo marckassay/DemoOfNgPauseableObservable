@@ -1,0 +1,28 @@
+{
+  "name": "demoofpauseableobservable",
+  "version": "1.0.0",
+  "description": "Demo of pausing a RXJS Observable",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marckassay/DemoOfNgPauseableObservable.git"
+  },
+  "keywords": [
+    "Rxjs",
+    "pause",
+    "Observable"
+  ],
+  "author": "Marc Kassay",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/marckassay/DemoOfNgPauseableObservable/issues"
+  },
+  "homepage": "https://github.com/marckassay/DemoOfNgPauseableObservable#readme",
+  "dependencies": {
+    "rxjs": "^5.4.3",
+    "typescript": "^2.5.2"
+  }
+}
