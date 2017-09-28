@@ -14,7 +14,7 @@ export interface IIntervalEmission {
     connect?: any;
 }
 
-export class Index 
+export class PauseableTimer 
 {
     source: ConnectableObservable<IIntervalEmission>;
     publication: Observable<any>;
@@ -23,14 +23,15 @@ export class Index
 
     constructor() {
         this.initializeTimer();
-
-        this.getStart().addEventListener('click',()=>this.start());
-        this.getPause().addEventListener('click',()=>this.pause());
-        this.getReset().addEventListener('click',()=>this.reset());
+        window.onload = (e)=>{
+            this.getStart().addEventListener('click',()=>this.start());
+            this.getPause().addEventListener('click',()=>this.pause());
+            this.getReset().addEventListener('click',()=>this.reset());
+        }
     }
 
     initializeTimer() {
-        const source = Observable.create((observer: any) => {
+        this.source = Observable.create((observer: any) => {
             observer.next( Observable.timer(0, 500)
             .startWith(20)
             .map(val => { IntervalState.Countdown, val--}) );
@@ -42,7 +43,7 @@ export class Index
         this.pauser = new Subject<boolean>();
 
         this.publication = (this.pauser as Observable<boolean>)
-                            .switchMap( (paused) => (paused == true) ? Observable.never() : source )
+                            .switchMap( (paused) => (paused == true) ? Observable.never() : this.source )
                             .take( 40 );
 
         this.subscribeTimer();
@@ -85,4 +86,4 @@ export class Index
         return document.getElementById('reset');
     }
 }
-export default new Index();
+export default PauseableTimer;
