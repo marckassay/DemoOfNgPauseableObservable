@@ -1,24 +1,18 @@
-import { Observable, Subscription, AnonymousSubject } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Rx';
 import { Subject } from 'rxjs/Subject';
-import { ConnectableObservable } from 'rxjs/observable/ConnectableObservable';
-
-export enum IntervalState {
-    Countdown,
-    Countup,
-    Completed
-}
+import { Subscription } from 'rxjs/Subscription';
 
 export interface IIntervalEmission {
-    readonly state: IntervalState;
+    readonly state: string;
     readonly count: number;
-    connect?: any;
 }
 
 export class PauseableTimer 
 {
-    source: ConnectableObservable<IIntervalEmission>;
-    publication: Observable<any>;
     pauser: Subject<boolean>;
+    source: Observable<IIntervalEmission>;
+    publication: Observable<IIntervalEmission|any>;
+    publicationSubscription: Subscription;
     paused: boolean = false;
 
     constructor() {
@@ -31,28 +25,30 @@ export class PauseableTimer
     }
 
     initializeTimer() {
-        this.source = Observable.create((observer: any) => {
-            observer.next( Observable.timer(0, 500)
-            .startWith(20)
-            .map(val => { IntervalState.Countdown, val--}) );
-
-             observer.next( Observable.timer(0, 500)
-            .map(val => { IntervalState.Countup, val++}) );
-        }).concat().publish();
-
         this.pauser = new Subject<boolean>();
+        
+        let timelinePointer: number = 40;
 
-        this.publication = (this.pauser as Observable<boolean>)
-                            .switchMap( (paused) => (paused == true) ? Observable.never() : this.source )
-                            .take( 40 );
+        const sequenceA = Observable.timer(0, 500)
+                                    .map((val) => { return {state: "SequenceA", count: --timelinePointer} as IIntervalEmission } )
+                                    .takeWhile((x: IIntervalEmission) => {return x.count > 20});
+        
+        const sequenceB = Observable.timer(0, 500)
+                                    .map((val) => {return {state: "SequenceB", count: timelinePointer--} as IIntervalEmission } )
+                                    .takeWhile((x: IIntervalEmission) => {return (x.count <= 20) && (x.count >= 0)});
 
+        this.source = Observable.concat(sequenceA, sequenceB)
+        
+        this.pauser.next(true);
+
+        this.publication = this.pauser.switchMap( (paused) => (paused == true) ? Observable.never() : this.source );
         this.subscribeTimer();
     }
 
     subscribeTimer(): void {
-        this.publication.subscribe((e: any) => {
+        this.publicationSubscription = this.publication.subscribe((e: any) => {
             console.log(e);
-        }, (err) => {
+        }, (err: any) => {
             console.log(err);
         }, () => {
             console.log("Timer completed!");
@@ -61,19 +57,23 @@ export class PauseableTimer
 
     start(): void {
         this.getStart().setAttribute('disabled', 'true');
-        this.source.connect();
-        console.log("start");
         this.pauser.next(false);
-
+        console.log("start");
     }
     pause(): void {
         this.paused = (this.paused) ? false:true;
         this.getPause().innerHTML = (this.paused)? 'UNPAUSE':'PAUSE';
+
+        const mesg = (this.paused)? 'Now paused':'Now playing';
+        console.log(mesg);
+
         this.pauser.next(this.paused);
     }
     reset(): void {
-        this.getStart().setAttribute('disabled', 'false');
-        //this.pauser.next(true);
+        this.getStart().removeAttribute('disabled');
+        this.publicationSubscription.unsubscribe();
+        this.paused = false;
+        this.getPause().innerHTML = 'PAUSE';
     }
 
     private getStart() {
