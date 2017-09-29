@@ -19,61 +19,76 @@ export class PauseableTimer
         this.initializeTimer();
         window.onload = (e)=>{
             this.getStart().addEventListener('click',()=>this.start());
+
             this.getPause().addEventListener('click',()=>this.pause());
+            this.getPause().setAttribute('disabled', 'true');
+
             this.getReset().addEventListener('click',()=>this.reset());
+            this.getReset().setAttribute('disabled', 'true');
         }
     }
-
+    
     initializeTimer() {
-        this.pauser = new Subject<boolean>();
-        
         let timelinePointer: number = 40;
 
+        this.pauser = new Subject<boolean>();
+        
         const sequenceA = Observable.timer(0, 500)
-                                    .map((val) => { return {state: "SequenceA", count: --timelinePointer} as IIntervalEmission } )
-                                    .takeWhile((x: IIntervalEmission) => {return x.count > 20});
+        .map((val) => { return {state: "SequenceA", count: --timelinePointer} as IIntervalEmission } )
+        .takeWhile((x: IIntervalEmission) => {return x.count > 20});
         
         const sequenceB = Observable.timer(0, 500)
-                                    .map((val) => {return {state: "SequenceB", count: timelinePointer--} as IIntervalEmission } )
-                                    .takeWhile((x: IIntervalEmission) => {return (x.count <= 20) && (x.count >= 0)});
-
+        .map((val) => {return {state: "SequenceB", count: timelinePointer--} as IIntervalEmission } )
+        .takeWhile((x: IIntervalEmission) => {return (x.count <= 20) && (x.count >= 0)});
+        
         this.source = Observable.concat(sequenceA, sequenceB)
         
         this.pauser.next(true);
-
+        
         this.publication = this.pauser.switchMap( (paused) => (paused == true) ? Observable.never() : this.source );
+
         this.subscribeTimer();
     }
 
     subscribeTimer(): void {
         this.publicationSubscription = this.publication.subscribe((e: any) => {
-            console.log(e);
+            this.getTextArea().innerHTML += e.state+": "+e.count+"<br>";
         }, (err: any) => {
             console.log(err);
         }, () => {
-            console.log("Timer completed!");
+            this.getTextArea().innerHTML += "Timer completed!";
         });
     }
 
     start(): void {
         this.getStart().setAttribute('disabled', 'true');
+        this.getPause().removeAttribute('disabled');
+        this.getReset().removeAttribute('disabled');
+
         this.pauser.next(false);
-        console.log("start");
+        this.getTextArea().innerHTML = "Started"+"<br>";
     }
     pause(): void {
         this.paused = (this.paused) ? false:true;
         this.getPause().innerHTML = (this.paused)? 'UNPAUSE':'PAUSE';
 
         const mesg = (this.paused)? 'Now paused':'Now playing';
-        console.log(mesg);
+        
+        this.getTextArea().innerHTML += mesg+"<br>";
 
         this.pauser.next(this.paused);
     }
     reset(): void {
-        this.getStart().removeAttribute('disabled');
-        this.publicationSubscription.unsubscribe();
+        this.getPause().setAttribute('disabled', 'true');
+        this.getReset().setAttribute('disabled', 'true');
+
         this.paused = false;
+        this.getStart().removeAttribute('disabled');
         this.getPause().innerHTML = 'PAUSE';
+        this.getTextArea().innerHTML = '';
+
+        this.publicationSubscription.unsubscribe();
+        this.initializeTimer();
     }
 
     private getStart() {
@@ -84,6 +99,9 @@ export class PauseableTimer
     }
     private getReset() {
         return document.getElementById('reset');
+    }
+    private getTextArea() {
+        return document.getElementById('output');
     }
 }
 export default PauseableTimer;
