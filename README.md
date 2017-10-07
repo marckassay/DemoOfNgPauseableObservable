@@ -1,6 +1,6 @@
 # DemoOfNgPauseableObservable
 Another spin-off project to focus development using RxJS to create 2 
-joined Observables that iterates which can be paused and continued.
+joined Observables that can be paused and continued.
 
 ## Instructions
 To install and run, execute the same or similar commands for your OS
