@@ -15,7 +15,7 @@ E:\> git clone https://github.com/marckassay/DemoOfPauseableObservable.git
   Receiving objects: 100% (1567/1567), 4.99 MiB | 3.69 MiB/s, done.
   Resolving deltas: 100% (400/400), done.
 E:\> sl .\DemoOfPauseableObservable\
-E:\DemoOfPauseableObservable [master ≡]> npm install
+  E:\DemoOfPauseableObservable [master ≡]> npm install
   npm WARN demoofpauseableobservable@1.0.0 No description
   npm WARN demoofpauseableobservable@1.0.0 No repository field.
 
